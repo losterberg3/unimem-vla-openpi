@@ -1637,7 +1637,6 @@ _CONFIGS = [
     # kept as-is for reproducibility.
     # ============================================================================
     #
-    # Inference configs: same architecture as coruscant training configs but action_samples=10
     TrainConfig(
         name="libero_mem1",
         model=pi0_config.Pi0Config(
