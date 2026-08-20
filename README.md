@@ -145,7 +145,9 @@ openpi/
     └── benchmark_four_cameras.py              # same, replicated for a 4-camera rig
 ```
 
-### Curating your UniMem dataset
+## Getting Started with UniMem
+
+### 1. Curating your dataset
 
 Clone and sync this repo following the usual steps below (see "Installation" further down for the full version). Make any changes to `pyproject.toml` with packages you need in your hardware setup (RealSense and xArm packages are currently included).
 
@@ -197,7 +199,7 @@ uv run examples/xarm/label_dataset_xarm.py \
 
 These are the keys "labels" and "phase_history", respectively, in the LeRobot dataset. You now have your memory dataset curated and are ready to start training!
 
-### Training your own UniMem policy
+### 2. Training your own UniMem policy
 
 This fork adds an optional **event-tracking head** (detects semantic events like "grabbed
 box" or "tapped left basket" — see the [terminology note](#a-note-on-terminology) above)
@@ -255,7 +257,7 @@ To train your own event-memory policy:
    XLA_PYTHON_CLIENT_MEM_FRACTION=0.9 uv run scripts/train.py <your_config_name> --exp-name=my_experiment --overwrite
    ```
 
-### Running your UniMem policy
+### 3. Running your UniMem policy
 
 To run your policy, edit the hardware specific variables and task specific vocabulary inside examples/xarm/xarm_inference.py. Write your experiment yaml file under experiments/ — copy one of the existing ones (e.g. `mem7.yaml`) and point `server.config`/`server.dir` at your own checkpoint; you shouldn't have to change much else. Note that we use gripper closing threshold and snap logic; this is just so that the gripper doesn't twitch when grasping. `run_experiments.py` starts the policy server itself (from the yaml's `server` block), so this one command is all you need to start sending commands to your robot:
 
@@ -279,7 +281,7 @@ Inference Note: `Policy` auto-detects `model.event_tracking` and returns an
      spacing you trained with) and send the whole stack every call, same as a
      single-frame model just with a `(T, H, W, C)` image instead of `(H, W, C)`.
 
-### Helpful Tips
+### 4. Helpful Tips
 
 - Make sure the same event is never labeled twice in a row. This shouldn't happen
   naturally anyway: returning to a cyclical subtask's starting point requires reversing
@@ -290,6 +292,8 @@ Inference Note: `Policy` auto-detects `model.event_tracking` and returns an
   policy's action depends on memory (e.g. which of two baskets to place into). These
   windows are often brief relative to the rest of a demonstration, but getting them
   right is what makes or breaks a memory policy.
+
+The rest of openpi's original README.md is below.
 
 # openpi
 
