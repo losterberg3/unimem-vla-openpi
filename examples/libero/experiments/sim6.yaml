@@ -1,0 +1,105 @@
+# Experiment batch config for run_experiments.py (LIBERO simulation)
+#
+# Task 6: empty the bowl with butter — grab the butter out, place it down, tap that bowl.
+# Four BDDL variants with different bowl positions.
+#
+# Run:
+#   uv run examples/libero/run_experiments.py examples/libero/experiments/sim6.yaml
+
+# NOTE: bddl_file paths below are relative to the directory you run the command
+# from (the openpi repo root) and assume LIBERO is checked out as a sibling
+# directory (../LIBERO), matching the default lookup in libero_inference.py.
+# Set the LIBERO_REPO_PATH env var, or edit these paths, if your layout differs.
+
+defaults:
+  host: "127.0.0.1"
+  port: 8000
+  num_rollouts: 6
+  max_episode_steps: 900
+  event_confidence_threshold: 0.8
+  save_video: true
+  video_out_path: "data/libero/videos"
+  video_encoder: true
+  num_frames: 3
+  track_object_pos_key: "target_food_pos"
+  scoring:
+    type: "initial_obj_to_event_xy"
+    event: "tapped plate"
+    sigma: 0.1
+  seed: -1
+  infer_every_steps: 10
+  num_steps_wait: 50
+  server:
+      config: "libero_mem6"
+      dir: "checkpoints/libero_mem6_finetune/mem6/29999"
+
+experiments:
+
+  - name: "task6_1_ours"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl1.bddl"
+    mode: "text_keyframe"
+
+  - name: "task6_1_text"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl1.bddl"
+    mode: "text"
+
+  - name: "task6_1_keyframes"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl1.bddl"
+    mode: "keyframe"
+
+  - name: "task6_1_base"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl1.bddl"
+    mode: "no_memory"
+
+  - name: "task6_2_ours"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl2.bddl"
+    mode: "text_keyframe"
+
+  - name: "task6_2_text"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl2.bddl"
+    mode: "text"
+
+  - name: "task6_2_keyframes"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl2.bddl"
+    mode: "keyframe"
+
+  - name: "task6_2_base"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl2.bddl"
+    mode: "no_memory"
+
+  - name: "task6_3_ours"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl3.bddl"
+    mode: "text_keyframe"
+
+  - name: "task6_3_text"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl3.bddl"
+    mode: "text"
+
+  - name: "task6_3_keyframes"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl3.bddl"
+    mode: "keyframe"
+
+  - name: "task6_3_base"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl3.bddl"
+    mode: "no_memory"
+
+  - name: "task6_4_ours"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl4.bddl"
+    mode: "text_keyframe"
+    num_rollouts: 7
+
+  - name: "task6_4_text"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl4.bddl"
+    mode: "text"
+    num_rollouts: 7
+
+  - name: "task6_4_keyframes"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl4.bddl"
+    mode: "keyframe"
+    num_rollouts: 7
+
+  - name: "task6_4_base"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl4.bddl"
+    mode: "no_memory"
+    num_rollouts: 7
+

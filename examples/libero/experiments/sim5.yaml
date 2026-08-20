@@ -1,0 +1,79 @@
+# Experiment batch config for run_experiments.py (LIBERO simulation)
+#
+# Task 5: search inside the baskets for the butter.
+# Two BDDL variants: search1, search2 (different initial configurations).
+#
+# Run:
+#   uv run examples/libero/run_experiments.py examples/libero/experiments/sim5.yaml
+#   uv run examples/libero/run_experiments.py examples/libero/experiments/sim5.yaml --dry-run
+
+# NOTE: bddl_file paths below are relative to the directory you run the command
+# from (the openpi repo root) and assume LIBERO is checked out as a sibling
+# directory (../LIBERO), matching the default lookup in libero_inference.py.
+# Set the LIBERO_REPO_PATH env var, or edit these paths, if your layout differs.
+
+defaults:
+  host: "127.0.0.1"
+  port: 8000
+  num_rollouts: 12
+  max_episode_steps: 800
+  save_video: true
+  video_out_path: "data/libero/videos"
+  video_encoder: true
+  num_frames: 3
+  event_confidence_threshold: 0.8
+  scoring:
+    type: "event_completion"
+    vlm_sequence:
+      - "found butter"
+      - "got butter"
+  seed: -1
+  infer_every_steps: 10
+  num_steps_wait: 50
+  server:
+    config: "libero_mem5"
+    dir: "checkpoints/libero_mem5_finetune/mem5/19999"
+
+experiments:
+
+  - name: "task5_left_ours"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task5_search1.bddl"
+    mode: "text_keyframe"
+    num_rollouts: 13
+
+  - name: "task5_right_ours"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task5_search2.bddl"
+    mode: "text_keyframe"
+    max_episode_steps: 1200
+
+  - name: "task5_left_text"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task5_search1.bddl"
+    mode: "text"
+    num_rollouts: 13
+
+  - name: "task5_right_text"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task5_search2.bddl"
+    mode: "text"
+    max_episode_steps: 1200
+
+  - name: "task5_left_keyframes"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task5_search1.bddl"
+    mode: "keyframe"
+    num_rollouts: 13
+
+  - name: "task5_right_keyframes"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task5_search2.bddl"
+    mode: "keyframe"
+    max_episode_steps: 1200
+
+  - name: "task5_left_base"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task5_search1.bddl"
+    mode: "no_memory"
+    num_rollouts: 13
+
+  - name: "task5_right_base"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task5_search2.bddl"
+    mode: "no_memory"
+    max_episode_steps: 1200
+  
+  

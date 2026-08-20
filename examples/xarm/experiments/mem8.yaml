@@ -1,0 +1,91 @@
+# Experiment batch config for run_experiments.py (xArm hardware)
+#
+# mem8: scoop beans with a spoon three times, pouring into a bowl each time,
+#       then place the spoon back down.
+#
+# Run:
+#   uv run examples/xarm/run_experiments.py examples/xarm/experiments/mem8.yaml
+
+defaults:
+  host: "127.0.0.1"
+  port: 8000
+  task: "mem8"
+  prompt: "put three scoops of beans into the mixing bowl"
+  num_rollouts: 20
+  max_episode_steps: 4000
+  save_keyframes: true
+  out_path: "data/xarm/keyframes"
+  video_encoder: true
+  num_frames: 4
+  event_confidence_threshold: 0.8
+  seed: -1
+  gripper_close_threshold: 0.65
+  gripper_close_snap: 0.83
+
+experiments:
+
+  # NOTE: update `dir` to the checkpoint you actually trained. Path is
+  # checkpoints/<train-config>/<exp-name>/<step>.
+
+  - name: "mem8_ours"
+    server:
+      config: "xarm_mem8_infer"
+      dir: "checkpoints/xarm_mem8_coruscant/mem8/29999"
+    mode: "text_keyframe"
+
+  - name: "mem8_text"
+    server:
+      config: "xarm_mem8_infer"
+      dir: "checkpoints/xarm_mem8_coruscant/mem8/29999"
+    mode: "text"
+
+  - name: "mem8_base"
+    server:
+      config: "xarm_mem8_infer"
+      dir: "checkpoints/xarm_mem8_coruscant/mem8/29999"
+    mode: "no_memory"
+
+  # --- memory ablations (one separately-trained checkpoint per arm) -----------------
+  # DIFFERENT from the three entries above: those run the FULL xarm_mem8_coruscant
+  # checkpoint with memory withheld at rollout (a train/test mismatch), whereas each arm
+  # below never saw the withheld modality during training. Both are worth having; they
+  # answer different questions.
+  #
+  # Train first:  uv run scripts/train.py xarm_mem8_<arm> --exp-name=mem8
+  # num_train_steps=30_000 for all three, so the last checkpoint is step 29999.
+  # If you train with checkpoint_base_dir="/path/to/your/checkpoints", prefix these
+  # dirs with that root — `dir` is passed to serve_policy verbatim.
+  #
+  # Each arm MUST point at its OWN checkpoint: these infer configs declare a different
+  # architecture than xarm_mem8_coruscant (no video encoder for the first two).
+
+  # Textual memory only: real event-history text, no video encoder.
+  - name: "mem8_text_only"
+    server:
+      config: "xarm_mem8_text_only_infer"
+      dir: "checkpoints/xarm_mem8_text_only/mem8_txt/29999"
+    mode: "text"
+    video_encoder: false
+    num_frames: 1
+
+  # No memory: no keyframes AND no event-history text. video_encoder must be false —
+  # this checkpoint has no video encoder at all, so the client must not send frame
+  # stacks or drive the stateful keyframe KV cache. Events are still detected and
+  # logged; they are just never fed back (history stays "History: none").
+  - name: "mem8_no_memory"
+    server:
+      config: "xarm_mem8_no_memory_infer"
+      dir: "checkpoints/xarm_mem8_no_memory/mem8_nm/29999"
+    mode: "no_memory"
+    video_encoder: false
+    num_frames: 1
+
+
+  # Keyframe memory only: event keyframes as usual, event-history text pinned to
+  # "History: none" (this arm trained with text_dropout_prob=1.0). Keeps the defaults'
+  # video_encoder: true / num_frames: 4 — must match xarm_mem8_keyframe_only.
+  - name: "mem8_keyframe_only"
+    server:
+      config: "xarm_mem8_keyframe_only_infer"
+      dir: "checkpoints/xarm_mem8_keyframe_only/mem8_kf/29999"
+    mode: "keyframe"

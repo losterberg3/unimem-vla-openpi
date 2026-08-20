@@ -1,0 +1,38 @@
+# Experiment batch config for run_experiments.py (LIBERO simulation)
+#
+# Task 1: pick up box, retract, put it back down. Video-encoder variant of sim1.yaml
+# (video_encoder=True, num_frames=4); see sim1.yaml for the text/keyframe/no_memory
+# ablations.
+#
+# Run:
+#   uv run examples/libero/run_experiments.py examples/libero/experiments/sim1_video.yaml
+
+# NOTE: bddl_file paths below are relative to the directory you run the command
+# from (the openpi repo root) and assume LIBERO is checked out as a sibling
+# directory (../LIBERO), matching the default lookup in libero_inference.py.
+# Set the LIBERO_REPO_PATH env var, or edit these paths, if your layout differs.
+
+defaults:
+  host: "127.0.0.1"
+  port: 8000
+  num_rollouts: 25
+  max_episode_steps: 900
+  save_video: true
+  video_out_path: "data/libero/videos"
+  video_encoder: true
+  num_frames: 4
+  seed: -1
+  num_steps_wait: 50
+  server:
+      config: "libero_mem1_video_infer"
+      dir: "checkpoints/libero_mem1_video/mem1/19999"
+  infer_every_steps: 10
+  stride_steps: 60
+  bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task1_pick_up_and_put_back_down.bddl"
+
+experiments:
+
+  - name: "task1_video"
+    mode: "video" 
+
+

@@ -1,0 +1,115 @@
+# Experiment batch config for run_experiments.py (xArm hardware)
+#
+# mem10: the human taps ONE cup; the robot puts ONE scoop of beans in that cup.
+#
+# Single tap, single grab, single scoop, single pour, single place — every event occurs
+# exactly once, so there is nothing to count and no repetition to disambiguate. This also
+# removes the shortcut that made the old mem10 unlearnable: with only one pour, no cup
+# ever contains beans while the arm is approaching, so the wrist view cannot identify the
+# target by its contents and the tap keyframe is the only cue.
+#
+# Cup positions are held constant across episodes, so the arrangement carries no
+# information about which cup was tapped — the tap is the only variable that differs.
+#
+# Run:
+#   uv run examples/xarm/run_experiments.py examples/xarm/experiments/mem10.yaml
+
+defaults:
+  host: "127.0.0.1"
+  port: 8000
+  # Selects COMPLETION_LANGUAGE_MEM10 in xarm_inference.py:
+  #   0 human tap | 1 grabbed spoon | 2 scooped beans | 3 poured beans | 4 placed spoon
+  task: "mem10"
+  # Must match meta/tasks.jsonl in lars/mem10_v4_final verbatim — the policy was trained
+  # with prompt_from_task=True, so a different string is an out-of-distribution prompt.
+  prompt: "watch the human tap a cup, then put a scoop of beans in that cup"
+  num_rollouts: 25
+  # Demos are ~940 frames (47s) after trimming, but at rollout the operator takes far
+  # longer to tap than in any demo (~29s observed vs a 5.4s median in training), and that
+  # wait is on top of the task itself.
+  max_episode_steps: 2000
+  save_keyframes: true
+  out_path: "data/xarm/keyframes"
+  video_encoder: true
+  # Must match xarm_mem10_infer AND xarm_mem10_coruscant (both 4). A mismatch loads and
+  # runs without error but silently serves the model with the wrong KV-cache depth and
+  # temporal PE table — this bit us before at 6-vs-8.
+  num_frames: 4
+  # There is only ONE tap now, so the failure mode where a second tap fired off the tail
+  # of the first (0.42s apart, vs a 1.30s minimum in any demo) cannot occur. Start here
+  # and raise it if the tap fires spuriously; set debug_event_probs to see what the head
+  # actually predicts, including events discarded by the threshold or the repeat guard.
+  event_confidence_threshold: 0.8
+  # debug_event_probs: true
+  # NOTE: run_experiments._build_args silently DROPS any key that is not a field on
+  # xarm_inference.Args — no error, no warning. `seed: -1` was carried in mem10.yaml for
+  # months and never did anything. Check the field exists before adding a key here.
+  gripper_close_threshold: 0.65
+  gripper_close_snap: 0.83
+
+experiments:
+
+  # NOTE: update `dir` to the checkpoint you actually trained. Path is
+  # checkpoints/<train-config>/<exp-name>/<step>.
+  
+  - name: "mem10_ours"
+    server:
+      config: "xarm_mem10_infer"
+      dir: "checkpoints/xarm_mem10_coruscant/mem10/39999"
+    mode: "text_keyframe"
+
+  - name: "mem10_text"
+    server:
+      config: "xarm_mem10_infer"
+      dir: "checkpoints/xarm_mem10_coruscant/mem10/39999"
+    mode: "text"
+
+  - name: "mem10_base"
+    server:
+      config: "xarm_mem10_infer"
+      dir: "checkpoints/xarm_mem10_coruscant/mem10/39999"
+    mode: "no_memory"
+
+  # --- memory ablations (one separately-trained checkpoint per arm) -----------------
+  # DIFFERENT from the three entries above: those run the FULL xarm_mem10_coruscant
+  # checkpoint with memory withheld at rollout (a train/test mismatch), whereas each arm
+  # below never saw the withheld modality during training. Both are worth having; they
+  # answer different questions.
+  #
+  # Train first:  uv run scripts/train.py xarm_mem10_<arm> --exp-name=mem10
+  # num_train_steps=40_000 for all three, so the last checkpoint is step 39999.
+  # If you train with checkpoint_base_dir="/path/to/your/checkpoints", prefix these
+  # dirs with that root — `dir` is passed to serve_policy verbatim.
+  #
+  # Each arm MUST point at its OWN checkpoint: these infer configs declare a different
+  # architecture than xarm_mem10_coruscant (no video encoder for the first two).
+
+  # Textual memory only: real event-history text, no video encoder.
+  - name: "mem10_text_only"
+    server:
+      config: "xarm_mem10_text_only_infer"
+      dir: "checkpoints/xarm_mem10_text_only/mem10_txt/39999"
+    mode: "text"
+    video_encoder: false
+    num_frames: 1
+
+  # No memory: no keyframes AND no event-history text. video_encoder must be false —
+  # this checkpoint has no video encoder at all, so the client must not send frame
+  # stacks or drive the stateful keyframe KV cache. Events are still detected and
+  # logged; they are just never fed back (history stays "History: none").
+  - name: "mem10_no_memory"
+    server:
+      config: "xarm_mem10_no_memory_infer"
+      dir: "checkpoints/xarm_mem10_no_memory/mem10_nm/39999"
+    mode: "no_memory"
+    video_encoder: false
+    num_frames: 1
+
+  # Keyframe memory only: event keyframes as usual, event-history text pinned to
+  # "History: none" (this arm trained with text_dropout_prob=1.0). Keeps the defaults'
+  # video_encoder: true / num_frames: 4 — must match xarm_mem10_keyframe_only.
+  - name: "mem10_keyframe_only"
+    server:
+      config: "xarm_mem10_keyframe_only_infer"
+      dir: "checkpoints/xarm_mem10_keyframe_only/mem10_kf/39999"
+    mode: "keyframe"

@@ -1,0 +1,98 @@
+# Experiment batch config for run_experiments.py (xArm hardware)
+#
+# mem7: measure the length of the hammer using the tape measurer and
+#       control the retract to ensure the hook doesn't slam.
+#
+# Memory ablations: unlike mem10.yaml (which runs ONE checkpoint in three modes),
+# the three arms below are SEPARATELY TRAINED checkpoints — xarm_mem7_{no_memory,
+# text_only,keyframe_only} — so each one only ever saw its own memory modality during
+# training. The mode here just matches what that checkpoint was trained on.
+#
+# Run:
+#   uv run examples/xarm/run_experiments.py examples/xarm/experiments/mem7.yaml
+
+defaults:
+  host: "127.0.0.1"
+  port: 8000
+  prompt: "measure the length of the hammer using the tape measurer and control the retract to ensure the hook doesn't slam"
+  num_rollouts: 20
+  max_episode_steps: 2000
+  save_keyframes: true
+  out_path: "data/xarm/keyframes"
+  video_encoder: true
+  num_frames: 4
+  event_confidence_threshold: 0.8
+  seed: -1
+  gripper_close_threshold: 0.35
+  gripper_close_snap: 0.75
+
+experiments:
+
+  # NOTE: update `dir` to the checkpoint you actually trained. Path is
+  # checkpoints/<train-config>/<exp-name>/<step>.
+
+  - name: "mem7_ours"
+    server:
+      config: "xarm_mem7_infer"
+      dir: "checkpoints/xarm_mem7_coruscant/mem7/19999"
+    mode: "text_keyframe"
+
+  - name: "mem7_text"
+    server:
+      config: "xarm_mem7_infer"
+      dir: "checkpoints/xarm_mem7_coruscant/mem7/19999"
+    mode: "text"
+
+  - name: "mem7_base"
+    server:
+      config: "xarm_mem7_infer"
+      dir: "checkpoints/xarm_mem7_coruscant/mem7/19999"
+    mode: "no_memory"
+
+  # --- memory ablations (one separately-trained checkpoint per arm) -----------------
+  # DIFFERENT from the three entries above: those run the FULL xarm_mem7_coruscant
+  # checkpoint with memory withheld at rollout (a train/test mismatch), whereas each arm
+  # below never saw the withheld modality during training. Both are worth having; they
+  # answer different questions.
+  #
+  # NOTE: none of these three checkpoints exist yet — train them first with
+  #   uv run scripts/train.py xarm_mem7_<arm> --exp-name=mem7
+  # and fix up `dir` if you use a different exp-name or stop at a different step.
+  # num_train_steps=20_000 for all three, so the last checkpoint is step 19999.
+  # If you train with checkpoint_base_dir="/path/to/your/checkpoints", prefix these
+  # dirs with that root — `dir` is passed to serve_policy verbatim.
+  #
+  # Each arm MUST point at its OWN checkpoint. These infer configs declare a different
+  # architecture than xarm_mem7_coruscant (no video encoder for the first two), so
+  # pointing them at the coruscant checkpoint is a real param-tree mismatch, not just a
+  # different set of weights.
+
+  # Textual memory only: real event-history text, no video encoder.
+  - name: "mem7_text_only"
+    server:
+      config: "xarm_mem7_text_only_infer"
+      dir: "checkpoints/xarm_mem7_text_only/mem7/19999"
+    mode: "text"
+    video_encoder: false
+    num_frames: 1
+
+  # No memory: no keyframes AND no event-history text. video_encoder must be false —
+  # this checkpoint has no video encoder at all (num_frames=1), so the client must not
+  # send frame stacks or drive the stateful keyframe KV cache. Events are still
+  # detected and logged; they are just never fed back (history stays "History: none").
+  - name: "mem7_no_memory"
+    server:
+      config: "xarm_mem7_no_memory_infer"
+      dir: "checkpoints/xarm_mem7_no_memory/mem7/19999"
+    mode: "no_memory"
+    video_encoder: false
+    num_frames: 1
+
+  # Keyframe memory only: event keyframes as usual, event-history text pinned to
+  # "History: none" (this arm trained with text_dropout_prob=1.0). Keeps the defaults'
+  # video_encoder: true / num_frames: 4 — must match xarm_mem7_keyframe_only.
+  - name: "mem7_keyframe_only"
+    server:
+      config: "xarm_mem7_keyframe_only_infer"
+      dir: "checkpoints/xarm_mem7_keyframe_only/mem7/19999"
+    mode: "keyframe"

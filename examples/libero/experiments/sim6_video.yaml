@@ -1,0 +1,54 @@
+# Experiment batch config for run_experiments.py (LIBERO simulation)
+#
+# Task 6: empty the bowl with butter — grab the butter out, place it down, tap that
+# bowl. Video-encoder variant of sim6.yaml; see sim6.yaml for the text/keyframe/
+# no_memory ablations.
+#
+# Run:
+#   uv run examples/libero/run_experiments.py examples/libero/experiments/sim6_video.yaml
+
+# NOTE: bddl_file paths below are relative to the directory you run the command
+# from (the openpi repo root) and assume LIBERO is checked out as a sibling
+# directory (../LIBERO), matching the default lookup in libero_inference.py.
+# Set the LIBERO_REPO_PATH env var, or edit these paths, if your layout differs.
+
+defaults:
+  host: "127.0.0.1"
+  port: 8000
+  num_rollouts: 6
+  max_episode_steps: 900
+  save_video: true
+  video_out_path: "data/libero/videos"
+  video_encoder: true
+  num_frames: 4
+  track_object_pos_key: "target_food_pos"
+  scoring:
+    type: "initial_obj_to_event_xy"
+    event: "tapped plate"
+    sigma: 0.1
+  seed: -1
+  infer_every_steps: 10
+  num_steps_wait: 50
+  stride_steps: 60
+  server:
+      config: "libero_mem6_video_infer"
+      dir: "checkpoints/libero_mem6_video/mem6/19999"
+
+experiments:
+
+  - name: "task6_1_video"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl1.bddl"
+    mode: "video"
+
+  - name: "task6_2_video"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl2.bddl"
+    mode: "video"
+
+  - name: "task6_3_video"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl3.bddl"
+    mode: "video"
+
+  - name: "task6_4_video"
+    bddl_file: "../LIBERO/libero/libero/bddl_files/memory/task6_pick_up_and_empty_bowl4.bddl"
+    mode: "video"
+    num_rollouts: 7

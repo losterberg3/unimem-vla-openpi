@@ -1,0 +1,96 @@
+# Experiment batch config for run_experiments.py (xArm hardware)
+#
+# mem9: pick up the bottle and wipe where it was.
+#
+# Run:
+#   uv run examples/xarm/run_experiments.py examples/xarm/experiments/mem9.yaml
+
+defaults:
+  host: "127.0.0.1"
+  port: 8000
+  task: "mem9"
+  prompt: "take the yellow bottle off the table, and then wipe where it was"
+  num_rollouts: 20
+  max_episode_steps: 2000
+  save_keyframes: true
+  out_path: "data/xarm/keyframes"
+  video_encoder: true
+  num_frames: 4
+  event_confidence_threshold: 0.8
+  seed: -1
+  # Gripper action in mem9 is bimodal at ~0.010 (open) / ~0.456 (closed), maxing at
+  # 0.500 - the same scale as mem7 (0.013 / 0.506), NOT mem8/mem10 (0.009 / 0.807).
+  # mem8's 0.65 is above every gripper action mem9 ever produces, so copying it here
+  # would silently disable the snap and leave the bottle and sponge held at whatever
+  # the raw policy output happened to be. 0.15 clears the open cluster (tops out at
+  # ~0.034) with wide margin to the closed cluster (starts at ~0.426); 0.75 matches
+  # mem7's hard-grip snap.
+  gripper_close_threshold: 0.56
+  gripper_close_snap: 0.75
+
+experiments:
+
+  # NOTE: update `dir` to the checkpoint you actually trained. Path is
+  # checkpoints/<train-config>/<exp-name>/<step>.
+
+  - name: "mem9_ours"
+    server:
+      config: "xarm_mem9_infer"
+      dir: "checkpoints/xarm_mem9_coruscant/mem9/29999"
+    mode: "text_keyframe"
+
+  - name: "mem9_text"
+    server:
+      config: "xarm_mem9_infer"
+      dir: "checkpoints/xarm_mem9_coruscant/mem9/29999"
+    mode: "text"
+
+  - name: "mem9_base"
+    server:
+      config: "xarm_mem9_infer"
+      dir: "checkpoints/xarm_mem9_coruscant/mem9/29999"
+    mode: "no_memory"
+
+  # --- memory ablations (one separately-trained checkpoint per arm) -----------------
+  # DIFFERENT from the three entries above: those run the FULL xarm_mem9_coruscant
+  # checkpoint with memory withheld at rollout (a train/test mismatch), whereas each arm
+  # below never saw the withheld modality during training. Both are worth having; they
+  # answer different questions.
+  #
+  # Train first:  uv run scripts/train.py xarm_mem9_<arm> --exp-name=mem9
+  # num_train_steps=30_000 for all three, so the last checkpoint is step 29999.
+  # If you train with checkpoint_base_dir="/path/to/your/checkpoints", prefix these
+  # dirs with that root — `dir` is passed to serve_policy verbatim.
+  #
+  # Each arm MUST point at its OWN checkpoint: these infer configs declare a different
+  # architecture than xarm_mem9_coruscant (no video encoder for the first two).
+
+  # Textual memory only: real event-history text, no video encoder.
+  - name: "mem9_text_only"
+    server:
+      config: "xarm_mem9_text_only_infer"
+      dir: "checkpoints/xarm_mem9_text_only/mem9_txt/29999"
+    mode: "text"
+    video_encoder: false
+    num_frames: 1
+
+  # No memory: no keyframes AND no event-history text. video_encoder must be false —
+  # this checkpoint has no video encoder at all, so the client must not send frame
+  # stacks or drive the stateful keyframe KV cache. Events are still detected and
+  # logged; they are just never fed back (history stays "History: none").
+  - name: "mem9_no_memory"
+    server:
+      config: "xarm_mem9_no_memory_infer"
+      dir: "checkpoints/xarm_mem9_no_memory/mem9_nm/29999"
+    mode: "no_memory"
+    video_encoder: false
+    num_frames: 1
+
+  # Keyframe memory only: event keyframes as usual, event-history text pinned to
+  # "History: none" (this arm trained with text_dropout_prob=1.0). Keeps the defaults'
+  # video_encoder: true / num_frames: 4 — must match xarm_mem9_keyframe_only.
+  - name: "mem9_keyframe_only"
+    server:
+      config: "xarm_mem9_keyframe_only_infer"
+      dir: "checkpoints/xarm_mem9_keyframe_only/mem9_kf/29999"
+    mode: "keyframe"
