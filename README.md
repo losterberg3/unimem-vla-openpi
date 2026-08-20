@@ -18,7 +18,10 @@ If you use this code, please cite:
 
 ## Fork Overview
 
-The changes in this fork (relative to upstream openpi) are in:
+This fork adds event-memory conditioning to π₀/π₀.₅, with model and training changes
+under `src/openpi/` (see the pipeline overview below, and the annotated file tree in
+["Repository Structure"](#repository-structure-only-files-weve-touched-or-added) for
+exactly which files changed), plus two evaluation domains used in the paper:
 - [`examples/libero`](examples/libero) — memory-conditioned LIBERO simulation experiments
 - [`examples/xarm`](examples/xarm) — memory-conditioned real-robot xArm experiments
 
