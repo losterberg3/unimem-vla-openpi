@@ -87,7 +87,7 @@ COMPLETION_LANGUAGE_MEM9: dict[int, str] = {
     3: "placed sponge",
 }
 
-# Must stay in sync with MEM10V4_COMPLETION_LANGUAGE in scripts/label_dataset_xarm.py.
+# Must stay in sync with MEM10_COMPLETION_LANGUAGE in examples/xarm/label_dataset_xarm.py.
 # One tap, one grab, one scoop, one pour, one place — every event occurs exactly
 # once, so nothing has to be counted or disambiguated.
 COMPLETION_LANGUAGE_MEM10: dict[int, str] = {

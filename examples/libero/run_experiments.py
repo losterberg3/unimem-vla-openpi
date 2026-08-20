@@ -5,19 +5,17 @@ Manages the serve_policy server lifecycle (start / wait-ready / stop), calls
 run_event_inference for each experiment, and scores the resulting event
 histories using the ``scoring:`` block from the YAML.
 
-Writes two output files next to the input YAML, named after its filename stem:
-    <stem>_results.csv    One row per experiment: success/failure counts, mean
-                          score, mean rollout time, mean inference latency, etc.
-                          Rewritten after every experiment finishes, so Ctrl+C
-                          never loses completed results.
+Writes one output file next to the input YAML, named after its filename stem:
     <stem>_episodes.txt   Per-episode scoring breakdown for every experiment,
                           appended as each one completes.
+A per-experiment summary table (success/failure counts, mean score, mean
+rollout time, mean inference latency, etc.) is printed to the console after
+the last experiment finishes.
 
 Usage:
     uv run examples/libero/run_experiments.py experiments.yaml [--dry-run]
 """
 
-import csv
 import dataclasses
 import logging
 import pathlib
@@ -130,19 +128,6 @@ def _build_scoring_cfg(defaults: dict, experiment: dict) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# CSV helper
-# ---------------------------------------------------------------------------
-
-def _write_csv(results: list[dict], csv_path: pathlib.Path) -> None:
-    if not results:
-        return
-    with open(csv_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=results[0].keys())
-        writer.writeheader()
-        writer.writerows(results)
-
-
-# ---------------------------------------------------------------------------
 # Main runner
 # ---------------------------------------------------------------------------
 
@@ -170,7 +155,6 @@ def main(yaml_path: str, dry_run: bool = False) -> None:
     results: list[dict] = []
     current_server_key: str | None = None
     server_proc: subprocess.Popen | None = None
-    csv_path = pathlib.Path(yaml_path).parent / f"{pathlib.Path(yaml_path).stem}_results.csv"
     episodes_txt_path = pathlib.Path(yaml_path).parent / f"{pathlib.Path(yaml_path).stem}_episodes.txt"
     if not dry_run:
         episodes_txt_path.write_text("")
@@ -260,9 +244,7 @@ def main(yaml_path: str, dry_run: bool = False) -> None:
                 "checkpoint_dir":   server_cfg.get("dir", "external") if server_cfg else "external",
                 "event_breakdown":  scored.get("event_breakdown", ""),
             })
-            # Flush after every completed experiment so Ctrl+C doesn't lose results.
-            _write_csv(results, csv_path)
-            logging.info("Results saved → %s  (%d/%d experiments)", csv_path, len(results), len(experiments))
+            logging.info("Completed %d/%d experiments", len(results), len(experiments))
 
     finally:
         if server_proc is not None:
@@ -292,7 +274,6 @@ def main(yaml_path: str, dry_run: bool = False) -> None:
     for row in results:
         logging.info("  ".join(str(row.get(c, "")).ljust(widths[c]) for c in col_order))
     logging.info("")
-    logging.info("Results saved → %s", csv_path)
 
 
 if __name__ == "__main__":

@@ -2,9 +2,9 @@
 
 Scoring config lives under a ``scoring:`` key in the YAML and is passed here as a plain dict.
 ``run_experiments.py`` collects rollout dicts from ``run_event_inference``, calls
-``score_rollouts`` to produce summary metrics, and writes one row per experiment to
-``<yaml-stem>_results.csv`` (plus a per-episode text breakdown) — see the module
-docstring in run_experiments.py for the exact output files.
+``score_rollouts`` to produce summary metrics, prints a per-experiment summary table to
+the console, and writes a per-episode text breakdown to ``<yaml-stem>_episodes.txt`` —
+see the module docstring in run_experiments.py for the exact output files.
 
 Supported scoring types
 -----------------------

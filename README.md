@@ -125,10 +125,9 @@ openpi/
 │   ├── libero/                                # ★ this fork's LIBERO-memory simulation experiments
 │   │   ├── README.md                          # setup/usage (Docker + local), results table, memory-experiment workflow (run_experiments.py + experiments/ yamls)
 │   │   ├── libero_inference.py                # event-memory-conditioned rollout client (Args, run_event_inference) — this fork's main inference script
-│   │   ├── run_experiments.py                 # batch-runs a YAML's experiments against serve_policy, scores them, writes <stem>_results.csv + <stem>_episodes.txt
+│   │   ├── run_experiments.py                 # batch-runs a YAML's experiments against serve_policy, scores them, prints a summary table, writes <stem>_episodes.txt
 │   │   ├── score_rollouts.py                  # scoring functions: grab_place_xy, drop_tap_match, object_return_xy, initial_obj_to_event_xy, event_completion
 │   │   ├── label_dataset_libero.py            # generates per-timestep event labels + event-history text for recorded LIBERO episodes (dataset prep; Claude-generated)
-│   │   ├── video_annotation.py                # shared rollout-frame text-overlay renderer
 │   │   └── experiments/                       # sim1.yaml..sim6.yaml + *_video.yaml — one batch config per LIBERO memory task (text/keyframe/no_memory ablations + video-encoder variant)
 │   │
 │   └── xarm/                                  # ★ this fork's real-robot xArm memory experiments

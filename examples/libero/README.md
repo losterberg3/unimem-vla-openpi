@@ -85,8 +85,8 @@ naming.
 - **`run_experiments.py`** — batch-runs a yaml's `experiments:` list against
   `scripts/serve_policy.py` (starting/stopping the server automatically whenever the
   checkpoint changes), scores each rollout using the yaml's `scoring:` block via
-  `score_rollouts.py`, and writes `<stem>_results.csv` + `<stem>_episodes.txt` next to
-  the input yaml.
+  `score_rollouts.py`, prints a per-experiment summary table to the console, and writes
+  `<stem>_episodes.txt` (a per-episode scoring breakdown) next to the input yaml.
 - **`experiments/sim1.yaml` .. `sim6.yaml`** (+ `*_video.yaml` variants) — the actual
   batch configs used for the six memory tasks' ablations in the paper (text / keyframe /
   no-memory arms, plus a separate video-encoder variant per task). Run with:

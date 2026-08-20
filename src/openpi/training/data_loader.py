@@ -730,7 +730,7 @@ def _event_window_mask_for_dataset(
     on samples that teach nothing about cup selection.
 
     ``labels`` marks a short window around each event transition (see
-    ``scripts/label_dataset.py``), so "the end of a labeled run of ``event_id``" is a good
+    ``examples/libero/label_dataset_libero.py``), so "the end of a labeled run of ``event_id``" is a good
     proxy for "right after that event finished" — e.g. event_id=3 ("retracted") anchors
     the frames where the arm has to commit to moving left vs. right.
 
