@@ -1,6 +1,6 @@
 Forked from https://github.com/Physical-Intelligence/openpi
 
-## Paper
+## UniMem
 
 This repository accompanies our paper **UniMem: Unifying Multimodal Memory and Control
 for VLAs** (Osterberg, Wang, Schwager — Stanford University, 2026, preprint).
