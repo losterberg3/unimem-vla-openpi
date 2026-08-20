@@ -113,13 +113,10 @@ openpi/
 │           └── lerobot_hf_patch.py            # patches a LeRobot HF-transform quirk before LeRobotDataset import
 │
 ├── scripts/                                   # CLI entry points
-│   ├── train.py                               # JAX fine-tuning entry point
+│   ├── train.py                               # JAX fine-tuning entry point with optional event classifier training
 │   ├── train_accum_steps.py                   # train.py variant with gradient accumulation
-│   ├── train_pytorch.py                       # PyTorch fine-tuning entry point (mirrors train.py)
 │   ├── serve_policy.py                        # loads a checkpoint and starts the WebsocketPolicyServer
-│   ├── compute_norm_stats.py                  # computes state/action normalization stats for a TrainConfig
-│   ├── compute_norm_stats_fast.py             # faster norm-stats variant that skips image decoding (state/actions only)
-│   └── docker/                                # Dockerfile + install scripts for serve_policy
+│   └── compute_norm_stats_fast.py             # faster norm-stats variant that skips image decoding (state/actions only)
 │
 ├── examples/
 │   ├── libero/                                # ★ this fork's LIBERO-memory simulation experiments
